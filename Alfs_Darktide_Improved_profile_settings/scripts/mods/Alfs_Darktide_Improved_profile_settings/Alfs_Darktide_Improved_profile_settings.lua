@@ -4,7 +4,6 @@ mod.global_profile_settings = mod:io_dofile(
 	"Alfs_Darktide_Improved_profile_settings/scripts/mods/Alfs_Darktide_Improved_profile_settings/preset_JSON_string"
 )
 
-dbg_1 = mod
 mod._profile_import_in_progress = false
 
 mod.reimport_profile_settings = function()
