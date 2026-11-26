@@ -1,69 +1,27 @@
 local mod = get_mod("Alfs_Darktide_Improved_profile_settings")
 
-local colours = {
-	title = "200,140,20",
-	subtitle = "226,199,126",
-	text = "169,191,153",
-}
+local script_path = "Alfs_Darktide_Improved_profile_settings/scripts/mods/Alfs_Darktide_Improved_profile_settings/"
+local gradient_text = mod:io_dofile(script_path .. "utils/gradient_text")
 
-local function lerp(a, b, t)
-	return a + (b - a) * t
-end
+local title_colour = "200,140,20"
 
-local function utf8_chars(s)
-	local chars = {}
-
-	for char in string.gmatch(s, "[%z\1-\127\194-\244][\128-\191]*") do
-		table.insert(chars, char)
+mod.gradientText = function(text, start_colour, end_colour, colour_spaces)
+	if type(gradient_text) ~= "function" then
+		return text
 	end
 
-	return chars
+	local gradient = gradient_text(text, start_colour, end_colour, colour_spaces) or ""
+
+	return "{#color(" .. title_colour .. ")} " .. gradient .. "{#reset()}"
 end
 
-mod.gradientText = function(text, startColor, endColor, colorSpaces)
-	local result = ""
-	local chars = utf8_chars(text)
-	local visibleIndex = 0
-
-	for _, char in ipairs(chars) do
-		if colorSpaces or char ~= " " then
-			visibleIndex = visibleIndex + 1
-		end
-	end
-
-	local currentIndex = 0
-
-	for _, char in ipairs(chars) do
-		if not colorSpaces and char == " " then
-			result = result .. char
-		else
-			currentIndex = currentIndex + 1
-			local t = visibleIndex <= 1 and 0 or (currentIndex - 1) / (visibleIndex - 1)
-			local r = math.floor(lerp(startColor[1], endColor[1], t))
-			local g = math.floor(lerp(startColor[2], endColor[2], t))
-			local b = math.floor(lerp(startColor[3], endColor[3], t))
-
-			result = result .. string.format("{#color(%d,%d,%d)}%s", r, g, b, char)
-		end
-	end
-
-	return "{#color(" .. colours.title .. ")} " .. result .. "{#reset()}"
-end
-
-local mod_name = {
-	en = "Alf's Darktide Improved",
-}
+local mod_name = "Alf's Darktide Improved"
+local pizazz_name = mod.gradientText(mod_name, { 0, 170, 255 }, { 0, 255, 170 }, true)
 
 mod.localisation = {
-	mod_name = {
-		en = mod_name.en,
-	},
-	mod_name_pizazz = {
-		en = mod.gradientText(mod_name.en, { 0, 170, 255 }, { 0, 255, 170 }, true),
-	},
-	mod_name_boring = {
-		en = mod_name.en,
-	},
+	mod_name = { en = mod_name },
+	mod_name_pizazz = { en = pizazz_name },
+	mod_name_boring = { en = mod_name },
 	mod_description = {
 		en = "The settings profile for Alf's Darktide Improved mod collection.",
 	},
@@ -74,7 +32,7 @@ mod.localisation = {
 		en = "Toggles the rainbow colours effect on the mod name text. Requires a reload.\nIf enabled, you will get a small euphoric experience everytime you scroll through the mod menu, \nIf disabled - you will be a John Darktide and have no rainbow sprinkles (but I'll love you anyway).",
 	},
 	general_settings = {
-		en = "{#color(" .. colours.title .. ")}General Settings{#reset()}",
+		en = "{#color(" .. title_colour .. ")}General Settings{#reset()}",
 	},
 	has_been_imported = {
 		en = "Settings imported",
@@ -97,16 +55,18 @@ mod.localisation = {
 }
 
 mod.toggle_pizazz = function()
-	for key, values in pairs(mod.localisation) do
-		if key == "mod_name" then
-			for language, _ in pairs(values) do
-				if mod:get("mod_name_pizazz_toggle") and mod.localisation.mod_name_pizazz[language] then
-					mod.localisation[key][language] = mod.localisation.mod_name_pizazz[language]
-				else
-					mod.localisation[key][language] = mod.localisation.mod_name_boring[language]
-				end
-			end
-		end
+	local source = mod.localisation.mod_name_boring
+
+	if mod:get("mod_name_pizazz_toggle") ~= false then
+		source = mod.localisation.mod_name_pizazz
+	end
+
+	if type(source) ~= "table" then
+		return
+	end
+
+	for language, name in pairs(source) do
+		mod.localisation.mod_name[language] = name
 	end
 end
 
