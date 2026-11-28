@@ -65,8 +65,14 @@ mod.toggle_pizazz = function()
 		return
 	end
 
+	local names = mod.localisation.mod_name
+
+	if type(names) ~= "table" then
+		return
+	end
+
 	for language, name in pairs(source) do
-		mod.localisation.mod_name[language] = name
+		names[language] = name
 	end
 end
 
